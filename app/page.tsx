@@ -18,10 +18,15 @@ type Resp = {
 export default function Home() {
   const [adv, setAdv] = useState<Advice | undefined>();
 
+  const controller = new AbortController();
+  const signal = controller.signal;
+
   async function getAdvice() {
     setAdv(undefined);
     try {
-      const response = await fetch("https://api.adviceslip.com/advice");
+      const response = await fetch("https://api.adviceslip.com/advice", {
+        signal,
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch advice");
       }
@@ -34,7 +39,9 @@ export default function Home() {
 
   useEffect(() => {
     getAdvice();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   if (!adv) return <Loader />;
